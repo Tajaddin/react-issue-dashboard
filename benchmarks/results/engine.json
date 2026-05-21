@@ -1,0 +1,7 @@
+{
+  "rows": 50000,
+  "iterations": 200,
+  "ms_per_query": 1.487,
+  "queries_per_sec": 673,
+  "query": "search + status + priority filter + multi-key sort + paginate"
+}
