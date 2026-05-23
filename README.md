@@ -41,14 +41,17 @@ Role categories unlocked: **Frontend Engineer**, Full-Stack.
 
 This is the data-heavy React that product teams actually ship: server-state caching, virtualization for scale, schema-validated forms, and a fast client-side query layer. It backs the "React / TypeScript" resume line with a measured performance number, not just a todo app.
 
-## Run it
+## How to run
+
+Prerequisites: Node 20+; Docker (optional, for the nginx-served production build).
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
-npm test           # 18 tests
-npm run build      # production bundle (88 KB gzip)
-docker compose -f - up   # or: docker build . && run nginx image
+npm test                       # 18 vitest cases
+npm run dev                    # http://localhost:5173
+npm run build                  # production bundle (88 KB gzip)
+node benchmarks/engine_bench.mjs --rows 50000   # 50k-row data-grid hero
+docker build -t react-issue-dashboard . && docker run -p 8080:80 react-issue-dashboard
 ```
 
 ## Architecture
