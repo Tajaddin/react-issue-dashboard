@@ -73,6 +73,55 @@ describe("runQuery", () => {
   });
 });
 
+describe("runQuery multi-key sort", () => {
+  const rows: Issue[] = [
+    { id: 1, title: "a", assignee: "bob", status: "open", priority: "high", createdAt: 100, comments: 1 },
+    { id: 2, title: "b", assignee: "alice", status: "open", priority: "low", createdAt: 300, comments: 1 },
+    { id: 3, title: "c", assignee: "carol", status: "open", priority: "high", createdAt: 300, comments: 1 },
+    { id: 4, title: "d", assignee: "alice", status: "open", priority: "low", createdAt: 100, comments: 1 },
+    { id: 5, title: "e", assignee: "alice", status: "open", priority: "high", createdAt: 300, comments: 1 },
+  ];
+  const ids = (spec: Parameters<typeof runQuery>[1]) => runQuery(rows, spec).rows.map((r) => r.id);
+
+  it("breaks ties on the first key with the next one", () => {
+    expect(ids({ sort: [{ key: "priority", dir: "desc" }, { key: "createdAt", dir: "asc" }] })).toEqual([1, 3, 5, 4, 2]);
+  });
+
+  it("applies each key's own direction, ascending by default", () => {
+    expect(ids({ sort: [{ key: "assignee" }, { key: "createdAt", dir: "desc" }] })).toEqual([2, 5, 4, 1, 3]);
+  });
+
+  it("is stable: rows equal on every key keep their input order, in either direction", () => {
+    expect(ids({ sort: [{ key: "priority", dir: "desc" }] })).toEqual([1, 3, 5, 2, 4]);
+    expect(ids({ sort: [{ key: "priority", dir: "asc" }] })).toEqual([2, 4, 1, 3, 5]);
+    expect(ids({ sort: [{ key: "comments", dir: "desc" }] })).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it("overrides sortKey/sortDir, which remain a one-key sort", () => {
+    expect(ids({ sortKey: "createdAt", sortDir: "desc" })).toEqual([2, 3, 5, 1, 4]);
+    expect(ids({ sortKey: "id", sortDir: "desc", sort: [{ key: "assignee" }, { key: "id" }] })).toEqual([2, 4, 5, 1, 3]);
+  });
+
+  it("orders a generated dataset lexicographically by every key, then input order", () => {
+    const data = generateIssues(5000);
+    const r = runQuery(data, {
+      sort: [{ key: "status" }, { key: "priority", dir: "desc" }, { key: "comments", dir: "desc" }],
+      pageSize: 5000,
+    });
+    const rank = { low: 0, medium: 1, high: 2, critical: 3 };
+    for (let i = 1; i < r.rows.length; i++) {
+      const a = r.rows[i - 1]!;
+      const b = r.rows[i]!;
+      const order =
+        a.status.localeCompare(b.status) ||
+        rank[b.priority] - rank[a.priority] ||
+        b.comments - a.comments ||
+        a.id - b.id;
+      expect(order).toBeLessThan(0);
+    }
+  });
+});
+
 describe("statusCounts", () => {
   it("counts each status", () => {
     expect(statusCounts(sample)).toEqual({ open: 1, in_progress: 1, closed: 1 });

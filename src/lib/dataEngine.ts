@@ -3,7 +3,7 @@
 // deterministic, and unit/benchmark testable. This is the hot path that keeps
 // a 50k-row grid responsive without a server round trip per keystroke.
 
-import type { Issue, QueryResult, QuerySpec } from "./types";
+import type { Issue, QueryResult, QuerySpec, SortRule } from "./types";
 
 const PRIORITY_RANK: Record<Issue["priority"], number> = {
   low: 0,
@@ -32,17 +32,23 @@ function compare(a: Issue, b: Issue, key: keyof Issue): number {
   return String(av).localeCompare(String(bv));
 }
 
+function sortRules(spec: QuerySpec): SortRule[] {
+  if (spec.sort && spec.sort.length > 0) return spec.sort;
+  return spec.sortKey ? [{ key: spec.sortKey, dir: spec.sortDir }] : [];
+}
+
 /**
  * Apply a query (search, status/priority filters, sort, pagination) to the
  * dataset. Returns the page plus the pre-pagination match total.
+ *
+ * Sorting compares by each rule in turn until one differs. Rows equal on
+ * every rule keep their input order (Array.prototype.sort is stable).
  */
 export function runQuery(data: readonly Issue[], spec: QuerySpec): QueryResult {
   const {
     search = "",
     status = "all",
     priority = "all",
-    sortKey,
-    sortDir = "asc",
     page = 0,
     pageSize = 50,
   } = spec;
@@ -55,9 +61,15 @@ export function runQuery(data: readonly Issue[], spec: QuerySpec): QueryResult {
     matched.push(issue);
   }
 
-  if (sortKey) {
-    const dir = sortDir === "asc" ? 1 : -1;
-    matched.sort((a, b) => compare(a, b, sortKey) * dir);
+  const rules = sortRules(spec).map((r) => ({ key: r.key, sign: r.dir === "desc" ? -1 : 1 }));
+  if (rules.length > 0) {
+    matched.sort((a, b) => {
+      for (const { key, sign } of rules) {
+        const c = compare(a, b, key);
+        if (c !== 0) return c * sign;
+      }
+      return 0;
+    });
   }
 
   const total = matched.length;
