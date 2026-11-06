@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tests && tsc --noEmit -p benchmarks",
     "test": "vitest run",
     "bench": "tsx benchmarks/engine_bench.ts"
   },
