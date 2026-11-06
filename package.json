@@ -2,7 +2,7 @@
   "name": "react-issue-dashboard",
   "version": "0.1.0",
   "private": true,
-  "description": "React + TS issue dashboard. Hero: pure data-grid engine runs a search + filter + 2-key sort + paginate over 50,000 rows in 1.04 ms. TanStack Query + Virtual, react-hook-form + zod, virtualized table.",
+  "description": "React + TS issue dashboard. Hero: pure data-grid engine filters 50,000 issues down to 575 and 2-key sorts them in 1.04 ms; a 2-key sort of all 50,000 takes 66.7 ms. TanStack Query + Virtual, react-hook-form + zod, virtualized table.",
   "license": "MIT",
   "author": "Tajaddin Gafarov <gafarovtajaddin@gmail.com>",
   "type": "module",

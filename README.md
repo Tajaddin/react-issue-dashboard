@@ -1,6 +1,6 @@
 # react-issue-dashboard
 
-> React + TypeScript issue dashboard with a virtualized table over thousands of rows. **The pure data-grid engine runs a search + filter + 2-key sort + paginate over 50,000 rows in 1.04 ms (962 queries/sec)**, so the grid stays responsive on every keystroke with no server round trip. TanStack Query + Virtual, react-hook-form + zod, 23 tests.
+> React + TypeScript issue dashboard with a virtualized table over thousands of rows. **The pure data-grid engine searches and filters 50,000 issues down to 575, then 2-key sorts and paginates them, in 1.04 ms (962 queries/sec); a 2-key sort of all 50,000 rows takes 66.7 ms.** Filtering on every keystroke needs no server round trip. TanStack Query + Virtual, react-hook-form + zod, 23 tests.
 
 [![ci](https://github.com/Tajaddin/react-issue-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/Tajaddin/react-issue-dashboard/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -23,7 +23,7 @@ npm run bench -- --rows 50000
 
 200 iterations after 20 warm-up runs, Node 24.14, i5-13600KF. The table is one run (`benchmarks/results/engine.json`); over five back-to-back runs the keystroke query took 0.80-1.42 ms and the full sort 39.6-74.0 ms.
 
-The data-grid engine is a pure function with no React and no I/O, and the benchmark imports `runQuery` and `generateIssues` from `src/lib`, so it times the same code the UI runs. Filtered queries at this speed are what let the dashboard search and filter 50k rows live instead of paging a server on each keystroke; an unfiltered sort of all 50k rows is the slow case, at tens of milliseconds.
+The data-grid engine is a pure function with no React and no I/O, and the benchmark imports `runQuery` and `generateIssues` from `src/lib`, so it times the same code the UI runs. The keystroke query is fast because the sort only sees the 575 rows that survive the filters; an unfiltered sort of all 50,000 rows is the slow case, at tens of milliseconds. The dashboard itself loads 2,000 seeded issues (`src/lib/api.ts`), so the 50,000-row run measures the engine's headroom, not the app's dataset.
 
 ## What it is
 
@@ -33,7 +33,7 @@ A realistic issue tracker UI built on the modern React data stack:
 |---|---|
 | Server state | **TanStack Query** (caching, invalidation on mutate) |
 | Big lists | **TanStack Virtual** — only viewport rows are mounted, so the DOM node count is constant whether the result set is 50 or 50,000 |
-| Query engine | pure `runQuery` (search + multi-filter + stable multi-key sort via `sort: [{ key, dir }, ...]` + paginate), unit-tested and benchmarked |
+| Query engine | pure `runQuery` (search + multi-filter + stable multi-key sort via `sort: [{ key, dir }, ...]` + paginate), unit-tested and benchmarked. Multi-key sort is an engine API: the UI has no sort control yet and lists issues by id, descending |
 | Forms | **react-hook-form + zod** with a typed resolver and inline validation errors |
 | Types | strict TypeScript end to end (`noUncheckedIndexedAccess` on) |
 
