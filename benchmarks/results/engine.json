@@ -1,7 +1,17 @@
 {
   "rows": 50000,
   "iterations": 200,
-  "ms_per_query": 1.487,
-  "queries_per_sec": 673,
-  "query": "search + status + priority filter + multi-key sort + paginate"
+  "node": "v24.14.0",
+  "keystroke": {
+    "query": "search + status + priority filter + 2-key sort + paginate",
+    "matched": 575,
+    "ms_per_query": 1.039,
+    "queries_per_sec": 962
+  },
+  "full_sort": {
+    "query": "2-key sort of every row + paginate",
+    "matched": 50000,
+    "ms_per_query": 66.659,
+    "queries_per_sec": 15
+  }
 }
