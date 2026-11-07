@@ -11,10 +11,18 @@ export interface Issue {
   comments: number;
 }
 
+export interface SortRule {
+  key: keyof Issue;
+  dir?: "asc" | "desc"; // default "asc"
+}
+
 export interface QuerySpec {
   search?: string;
   status?: IssueStatus | "all";
   priority?: IssuePriority | "all";
+  /** Sort keys in priority order. When non-empty, overrides sortKey/sortDir. */
+  sort?: SortRule[];
+  /** One-key sort, same as `sort: [{ key: sortKey, dir: sortDir }]`. */
   sortKey?: keyof Issue;
   sortDir?: "asc" | "desc";
   page?: number;
